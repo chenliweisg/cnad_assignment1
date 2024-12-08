@@ -44,6 +44,10 @@ In the architecture design:
 4. **Service Isolation**  
    - Each service operates independently with its own dedicated microservice and database.  
    - This design ensures that a failure in one service does not impact the functionality of others, promoting robust system resilience.
+ 
+5. **Below is the architecture diagram of the microservices**
+
+![Microservices Architecture Diagram](https://github.com/chenliweisg/cnad_assignment1/raw/main/assignment%201/microservice%20diagram1.drawio.png)
 
 ---
 
