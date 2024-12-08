@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .no-reservations {
+            text-align: center;
+            font-size: 18px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reservation History</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Reservation ID</th>
+                    <th>Vehicle ID</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="reservationTable">
+                <!-- Reservation rows will be dynamically populated -->
+            </tbody>
+        </table>
+        <div id="noReservations" class="no-reservations" style="display:none;">
+            No reservation history found.
+        </div>
+        <a href="home.html" class="btn">Back to Home</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const userID = sessionStorage.getItem("userID");
+
+            if (!userID) {
+                alert("You are not logged in. Redirecting to login page.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Fetch reservation history for the user
+            $.ajax({
+                url: `/api/v1/reservations/history/${userID}`,
+                method: "GET",
+                success: function (reservations) {
+                    const reservationTable = $("#reservationTable");
+                    reservationTable.empty(); // Clear the table
+
+                    if (reservations.length === 0) {
+                        $("#noReservations").show();
+                        return;
+                    }
+
+                    reservations.forEach(reservation => {
+                        const row = `
+                            <tr>
+                                <td>${reservation.reservationID}</td>
+                                <td>${reservation.vehicleID}</td>
+                                <td>${reservation.startTime}</td>
+                                <td>${reservation.endTime}</td>
+                                <td>${reservation.status}</td>
+                            </tr>
+                        `;
+                        reservationTable.append(row);
+                    });
+                },
+                error: function (xhr) {
+                    console.error(`Failed to fetch reservations: HTTP ${xhr.status}`);
+                    alert("Failed to fetch reservation history. Please try again.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

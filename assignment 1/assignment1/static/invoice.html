@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Invoices</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User Invoices</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Invoice ID</th>
+                    <th>Transaction ID</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody id="invoiceTable">
+                <!-- Invoice rows will be dynamically populated -->
+            </tbody>
+        </table>
+        <a href="home.html" class="btn">Back to Home</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const userID = sessionStorage.getItem("userID");
+
+            if (!userID) {
+                alert("You are not logged in. Redirecting to login page.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Fetch invoices for the logged-in user
+            $.ajax({
+                url: `/api/v1/invoices/${userID}`,
+                method: "GET",
+                success: function (invoices) {
+                    const invoiceTable = $("#invoiceTable");
+                    invoiceTable.empty(); // Clear the table
+
+                    if (invoices.length === 0) {
+                        invoiceTable.append(`<tr><td colspan="3" style="text-align:center;">No invoices found.</td></tr>`);
+                        return;
+                    }
+
+                    invoices.forEach(invoice => {
+                        const row = `
+                            <tr>
+                                <td>${invoice.invoiceID}</td>
+                                <td>${invoice.transactionID}</td>
+                                <td>${invoice.invoiceDetails}</td>
+                            </tr>
+                        `;
+                        invoiceTable.append(row);
+                    });
+                },
+                error: function (xhr) {
+                    console.error(`Failed to fetch invoices: HTTP ${xhr.status}`);
+                    alert("Failed to fetch invoices. Please try again.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Reservation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Available Vehicles</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Vehicle ID</th>
+                    <th>Model</th>
+                    <th>Location</th>
+                    <th>Charge Level</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="vehicleTable">
+                <!-- Data will be dynamically populated -->
+            </tbody>
+        </table>
+        <button id="returnHome" style="margin-top: 10px;">Return to Home</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Function to fetch and display available vehicles
+            function fetchAvailableVehicles() {
+                $.ajax({
+                    url: '/api/v1/vehicles/available', // API endpoint
+                    method: 'GET',
+                    success: function (vehicles) {
+                        const vehicleTable = $("#vehicleTable");
+                        vehicleTable.empty(); // Clear previous data
+
+                        // Iterate through vehicles and populate the table
+                        vehicles.forEach(vehicle => {
+                            const row = `
+                                <tr>
+                                    <td>${vehicle.vehicleID}</td>
+                                    <td>${vehicle.model}</td>
+                                    <td>${vehicle.location}</td>
+                                    <td>${vehicle.chargeLevel}%</td>
+                                    <td>${vehicle.status}</td>
+                                    <td>
+                                        <button class="book-btn" data-vehicle-id="${vehicle.vehicleID}">
+                                            Book
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                            vehicleTable.append(row);
+                        });
+                            // Add event listener for "Book" button
+                            $(".book-btn").click(function () {
+                                const vehicleID = $(this).data("vehicle-id");
+                                // Redirect to reservation.html with vehicleID as a query parameter
+                                window.location.href = `reservation.html?vehicleID=${vehicleID}`;
+                            });
+                    },
+                    error: function (xhr) {
+                        console.error(`Failed to fetch vehicles: HTTP ${xhr.status}`);
+                    }
+                });
+            }
+
+            $("#returnHome").click(function () {
+                window.location.href = "home.html"; // Adjust the path if necessary
+            });
+
+            // Fetch data every 5 seconds for real-time updates
+            setInterval(fetchAvailableVehicles, 5000);
+
+            // Initial fetch on page load
+            fetchAvailableVehicles();
+
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            width: 100%;
+            background: #007BFF;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        nav {
+            margin: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            border-radius: 5px;
+            margin: 0 10px;
+            font-size: 16px;
+        }
+
+        nav a:hover {
+            background: #0056b3;
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Home Page</h1>
+    </header>
+    <nav>
+        <!-- Link to User Profile -->
+        <a href="/static/profile.html">User Profile</a>
+        <!-- Link to Vehicle Reservation -->
+        <a href="/static/displayVehicles.html">New Reservation</a>
+        <!-- Link to My Vehicle Reservation -->
+        <a href="/static/myReservation.html">Existing Reservation</a>
+        <!-- Link to My Reservation history record -->
+        <a href="/static/reservationHistory.html">Reservation History</a>
+        <!-- Link to My invoice record -->
+        <a href="/static/invoice.html">Invoice</a>
+        <!-- Logout Button -->
+        <button id="logoutButton" style="background: #FF5733; color: white; padding: 10px 20px; border: none; border-radius: 5px; margin-left: 10px; font-size: 16px;">Logout</button>
+    </nav>
+    <script>
+        document.getElementById("logoutButton").addEventListener("click", function () {
+            // Clear session storage
+            sessionStorage.clear();
+    
+            // Redirect to login page
+            window.location.href = "/static/login.html";
+        });
+    </script>
+    
+</body>
+</html>

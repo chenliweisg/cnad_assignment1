@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Summary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        p, label {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-back {
+            background-color: #FF5733;
+        }
+
+        .btn-back:hover {
+            background-color: #C70039;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bill Summary</h1>
+        <p><strong>Reservation ID:</strong> <span id="reservationID"></span></p>
+        <p><strong>Duration:</strong> <span id="duration"></span> hours</p>
+        <p><strong>Base Rate:</strong> $<span id="baseRate"></span> per hour</p>
+        <p><strong>Discount Rate:</strong> <span id="discountRate"></span>%</p>
+        <p><strong>Total Cost:</strong> $<span id="totalCost"></span></p>
+
+        <h2>Payment Details</h2>
+        <form id="paymentForm">
+            <label for="paymentMethod">Payment Method</label>
+            <select id="paymentMethod" class="form-control" required>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="PayPal">PayPal</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+            
+            <label for="cardNumber">Card Number</label>
+            <input type="text" id="cardNumber" class="form-control" placeholder="Enter card number" required>
+            
+            <label for="securityCode">Security Code</label>
+            <input type="text" id="securityCode" class="form-control" placeholder="Enter security code" required>
+            
+            <button type="submit" class="btn">Confirm Payment</button>
+        </form>
+        
+        <a href="myReservation.html" class="btn btn-back">Back to Reservations</a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const reservationID = parseInt(urlParams.get('reservationID'), 10);
+            const vehicleID = parseInt(urlParams.get('vehicleID'), 10);
+            const startTime = new Date(urlParams.get('startTime'));
+            const endTime = new Date(urlParams.get('endTime'));
+            const currentTime = new Date();
+            const membershipID = sessionStorage.getItem("membershipID");
+
+            let duration;
+            if (currentTime > endTime) {
+                duration = (currentTime - startTime) / (1000 * 60 * 60);
+            } else {
+                duration = (endTime - startTime) / (1000 * 60 * 60);
+            }
+
+            $.ajax({
+                url: `/api/v1/membership/${membershipID}/discount`, 
+                method: "GET",
+                success: function (response) {
+                    const baseRate = 20;
+                    const discountRate = response.discountRate;
+                    const totalCost = duration * baseRate * (1 - discountRate / 100);
+
+                    $("#reservationID").text(reservationID);
+                    $("#duration").text(duration.toFixed(2));
+                    $("#baseRate").text(baseRate.toFixed(2));
+                    $("#discountRate").text(discountRate.toFixed(2));
+                    $("#totalCost").text(totalCost.toFixed(2));
+
+                    $("#paymentForm").submit(function (e) {
+                        e.preventDefault();
+
+                        const paymentData = {
+                            reservationID: reservationID,
+                            vehicleID: vehicleID,
+                            userID: parseInt(sessionStorage.getItem("userID"), 10),
+                            amount: totalCost,
+                            paymentMethod: $("#paymentMethod").val(),
+                            status: "Completed"
+                        };
+
+                        $.ajax({
+                            url: "/api/v1/transactions",
+                            method: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify(paymentData),
+                            success: function (transactionID) {
+                                alert("Payment successful!");
+
+                                // After successful payment, return the vehicle
+                                $.ajax({
+                                    url: `/api/v1/reservations/${reservationID}/return`,
+                                    method: "PUT",
+                                    contentType: "application/json",
+                                    data: JSON.stringify({ vehicleID: vehicleID }),
+                                    success: function () {
+                                        alert("Vehicle returned successfully!");
+                                        window.location.href = "myReservation.html";
+                                    },
+                                    error: function (xhr) {
+                                        console.error(`Failed to return vehicle: HTTP ${xhr.status}`);
+                                        alert("Payment successful, but vehicle return failed. Please try again.");
+                                    }
+                                });
+                            },
+                            error: function () {
+                                alert("Payment failed.");
+                            }
+                        });
+                    });
+                },
+                error: function () {
+                    alert("Failed to fetch discount rate.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

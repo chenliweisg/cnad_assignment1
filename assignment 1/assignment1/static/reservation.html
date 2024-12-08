@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserve Vehicle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reserve Vehicle</h1>
+        <p id="vehicleDetails"></p>
+
+        <form id="reservationForm">
+            <label for="startTime">Start Time:</label>
+            <input type="datetime-local" id="startTime" name="startTime" required>
+
+            <label for="endTime">End Time:</label>
+            <input type="datetime-local" id="endTime" name="endTime" required disabled>
+
+            <button type="submit">Confirm Reservation</button>
+            <button id="returnVehicles" style="margin-top: 10px;background-color: grey;">Return to Display Vehicles</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const userID =  parseInt(sessionStorage.getItem("userID"),10);
+            const membershipID = sessionStorage.getItem("membershipID");
+            // Get vehicleID from URL query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const vehicleID = urlParams.get("vehicleID");
+
+            if (!vehicleID) {
+                alert("No vehicle selected!");
+                window.history.back(); // Go back if no vehicle ID is provided
+                return;
+            }
+
+            // Display vehicle details
+            $("#vehicleDetails").text(`You are reserving Vehicle ID: ${vehicleID}`);
+
+            // Handle form submission
+            $("#reservationForm").submit(function (e) {
+                e.preventDefault();
+
+                const startTime = $("#startTime").val();
+                const endTime = $("#endTime").val();
+
+                if (new Date(startTime) >= new Date(endTime)) {
+                    alert("End time must be later than start time!");
+                    return;
+                }
+
+                // Send reservation request to the backend
+                $.ajax({
+                    url: '/api/v1/reservations',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        userID: userID, // Replace with dynamic UserID
+                        vehicleID: parseInt(vehicleID, 10),
+                        startTime: startTime,
+                        endTime: endTime,
+                        status: 'Booked'
+                    }),
+                    success: function () {
+                        alert(`Vehicle ${vehicleID} reserved successfully!`);
+                        window.location.href = "myReservation.html"; // Redirect to the main page
+                    },
+                    error: function (xhr) {
+                        console.error(`Failed to reserve vehicle: HTTP ${xhr.status}`);
+                        alert("Failed to reserve the vehicle. Please try again.");
+                    }
+                });
+            });
+
+
+            // Get today's date in the required format for datetime-local input
+            const today = new Date();
+            const formattedDate = today.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+
+            // Set the minimum value for startTime to disallow past dates
+            $("#startTime").attr("min", formattedDate);
+
+            // Listen for changes in startTime
+            $("#startTime").on("change", function () {
+                const startTime = new Date($(this).val());
+
+                if (startTime) {
+                    // Calculate the minimum endTime as 1 hour after startTime
+                    const minEndTime = new Date(startTime.getTime() + 60 * 60 * 1000).toISOString().slice(0, 16); // Add 1 hour
+
+                    // Enable the endTime field and set its minimum value
+                    $("#endTime").removeAttr("disabled");
+                    $("#endTime").attr("min", minEndTime);
+
+                    // Optionally clear any previously selected endTime if it's now invalid
+                    const currentEndTime = new Date($("#endTime").val());
+                    if (currentEndTime && currentEndTime < new Date(minEndTime)) {
+                        $("#endTime").val(""); // Clear the value if it's no longer valid
+                    }
+                } else {
+                    // Disable endTime if startTime is not selected
+                    $("#endTime").attr("disabled", true).val("");
+                }
+            });
+
+            // Prevent selecting an endTime earlier than the allowed minimum
+            $("#reservationForm").on("submit", function (e) {
+                const startTime = new Date($("#startTime").val());
+                const endTime = new Date($("#endTime").val());
+
+                if (startTime && endTime) {
+                    // Check if endTime is at least 1 hour after startTime
+                    if (endTime <= new Date(startTime.getTime() + 60 * 60 * 1000)) {
+                        alert("End time must be at least 1 hour after the start time.");
+                        e.preventDefault();
+                        return;
+                    }
+                } else {
+                    alert("Both Start Time and End Time must be selected.");
+                    e.preventDefault();
+                }
+            });
+
+
+
+            $("#returnVehicles").click(function () {
+                window.location.href = "displayVehicles.html"; // Adjust the path if necessary
+            });
+
+        });
+    </script>
+</body>
+</html>

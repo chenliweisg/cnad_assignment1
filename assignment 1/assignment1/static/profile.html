@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        form h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <form id="profileForm">
+        <h2>Update Profile</h2>
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter your name" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+
+        <label for="phone">Phone</label>
+        <input type="text" id="phone" name="phone" placeholder="Enter your phone number" required>
+
+        <label for="passwordHash">Password</label>
+        <input type="password" id="passwordHash" name="passwordHash" placeholder="Enter a new password">
+
+        <label for="membershipID">Membership ID</label>
+        <input type="number" id="membershipID" name="membershipID" placeholder="Enter Membership ID" required disabled>
+
+        <button type="submit">Update</button>
+    </form>
+    <button id="returnHome" style="margin-top: 10px;width: 300px;background-color: grey;">Return to Home</button>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // $(document).ready(function () {
+        //     const userID = sessionStorage.getItem("userID");
+        //     const membershipID = sessionStorage.getItem("membershipID");
+
+        //     // Fetch user profile on page load
+        //     $.ajax({
+        //         url: `/api/v1/profile/${userID}`,
+        //         method: "GET",
+        //         success: function (userProfile) {
+        //             // Populate input fields
+        //             $("#name").val(userProfile.name || '');
+        //             $("#email").val(userProfile.email || '');
+        //             $("#phone").val(userProfile.phone || '');
+        //             $("#passwordHash").val(userProfile.password || '');
+        //             $("#membershipID").val(userProfile.membershipID || '');
+        //         },
+        //         error: function (xhr) {
+        //             console.error(`Failed to fetch profile: HTTP ${xhr.status}`);
+        //             alert("Failed to fetch profile data.");
+        //         }
+        //     });
+
+        //     // Handle form submission for updating profile
+        //     $("#profileForm").submit(function (e) {
+        //         e.preventDefault(); // Prevent default form submission behavior
+
+        //         // Get updated data from the form fields
+        //         const updatedData = {
+        //             id: userID,
+        //             name: $("#name").val(),
+        //             email: $("#email").val(),
+        //             phone: $("#phone").val(),
+        //             password: $("#passwordHash").val(),
+        //             membershipID: parseInt($("#membershipID").val(), 10)
+        //         };
+
+        //         // Send updated data to the backend
+        //         $.ajax({
+        //             url: `/api/v1/profile/${userID}`,
+        //             method: "PUT",
+        //             contentType: "application/json",
+        //             data: JSON.stringify(updatedData),
+        //             success: function () {
+        //                 alert("Profile updated successfully!");
+        //             },
+        //             error: function (xhr) {
+        //                 console.error(`Failed to update profile: HTTP ${xhr.status}`);
+        //                 alert("Failed to update profile. Please try again. thanks");
+        //             }
+        //         });
+        //     });
+
+
+        //     $("#returnHome").click(function () {
+        //         window.location.href = "home.html"; // Adjust the path if necessary
+        //     });
+
+
+        // });
+        $(document).ready(function () {
+    const userID = sessionStorage.getItem("userID");
+    const membershipID = sessionStorage.getItem("membershipID");
+
+    // Fetch user profile on page load
+    $.ajax({
+        url: `/api/v1/profile/${userID}`,
+        method: "GET",
+        success: function (userProfile) {
+            // Populate input fields
+            $("#name").val(userProfile.name || '');
+            $("#email").val(userProfile.email || '');
+            $("#phone").val(userProfile.phone || '');
+            $("#membershipID").val(userProfile.membershipID || '');
+        },
+        error: function (xhr) {
+            console.error(`Failed to fetch profile: HTTP ${xhr.status}`);
+            alert("Failed to fetch profile data.");
+        }
+    });
+
+    // Handle form submission for updating profile
+    $("#profileForm").submit(function (e) {
+        e.preventDefault(); // Prevent default form submission behavior
+
+        // Get updated data from the form fields
+        const updatedData = {
+            id: userID,
+            name: $("#name").val(),
+            email: $("#email").val(),
+            phone: $("#phone").val(),
+            membershipID: parseInt($("#membershipID").val(), 10)
+        };
+
+        const password = $("#passwordHash").val().trim();
+        if (password) {
+            updatedData.password = password; // Only add password if it's not empty
+        }
+
+        // Send updated data to the backend
+        $.ajax({
+            url: `/api/v1/profile/${userID}`,
+            method: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify(updatedData),
+            success: function () {
+                alert("Profile updated successfully!");
+            },
+            error: function (xhr) {
+                console.error(`Failed to update profile: HTTP ${xhr.status}`);
+                alert("Failed to update profile. Please try again. thanks");
+            }
+        });
+    });
+
+    $("#returnHome").click(function () {
+        window.location.href = "home.html"; // Adjust the path if necessary
+    });
+});
+
+    </script>
+
+    
+</body>
+</html>
