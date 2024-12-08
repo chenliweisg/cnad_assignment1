@@ -42,5 +42,22 @@ Follow these steps to set up and run your microservices:
 3. **Update Main Service Endpoint**  
    - In `main.go`, change the URL for the localhost (`localhost:8080`) to your specific localhost URL.
 
+
+4. **Ensure Dependencies in `go.mod`**  
+   - Make sure the following dependencies are included in your `go.mod` file:
+     ```go
+     module assignment1
+
+     go 1.23.1
+
+     require (
+         filippo.io/edwards25519 v1.1.0 // indirect
+         github.com/go-sql-driver/mysql v1.8.1 // indirect
+         github.com/gorilla/mux v1.8.1 // indirect
+         github.com/gorilla/securecookie v1.1.2 // indirect
+         github.com/gorilla/sessions v1.4.0 // indirect
+         golang.org/x/crypto v0.29.0 // indirect
+     )
+
 ---
 
